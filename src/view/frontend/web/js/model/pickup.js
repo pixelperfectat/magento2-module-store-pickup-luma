@@ -16,6 +16,21 @@ define([
         locations = config.locations || {};
 
     /**
+     * Compares address values tolerant of type and surrounding whitespace.
+     *
+     * @param {*} left
+     * @param {*} right
+     * @return {Boolean}
+     */
+    function same(left, right) {
+        var normalise = function (value) {
+            return value === null || value === undefined ? '' : String(value).trim();
+        };
+
+        return normalise(left) === normalise(right);
+    }
+
+    /**
      * @param {Object|null} method - a shipping rate or quote shipping method
      * @return {Boolean}
      */
@@ -65,8 +80,8 @@ define([
             for (i = 0; i < codes.length; i++) {
                 location = getLocation(codes[i]);
 
-                if (location && (location.street || [])[0] === street &&
-                    location.postcode === postcode && location.city === city
+                if (location && same((location.street || [])[0], street) &&
+                    same(location.postcode, postcode) && same(location.city, city)
                 ) {
                     return location;
                 }
@@ -86,6 +101,9 @@ define([
             if (address) {
                 // not enumerable: the address object is posted as is, and the API rejects unknown fields
                 Object.defineProperty(address, 'ppPickup', {value: true, configurable: true});
+                // never ask to save the location in the address book (core sets 1 for customers on the inline form)
+                address.saveInAddressBook = 0;
+                address['save_in_address_book'] = 0;
                 address.canUseForBilling = function () {
                     return false;
                 };

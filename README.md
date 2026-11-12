@@ -18,8 +18,11 @@ rate, and keeps the billing address separate. The module is not released yet.
 
 - PHP `^8.3`
 - `pixelperfectat/magento2-module-store-pickup` `^0.1`
-- Magento Open Source or Mage-OS with the Luma checkout (Knockout and RequireJS). On Hyvä shops the module works
-  where Hyvä Checkout's Luma fallback is used; for Hyvä Checkout itself use the Hyvä companion module.
+- Magento Open Source or Mage-OS with the native Luma checkout (Knockout and RequireJS), rendered by a Luma-based
+  theme on the store view. This was verified in the lab with `Magento/luma` on the store view. Setting
+  `hyva_themes_checkout/general/checkout` to `magento_luma` alone is not enough: on a Hyvä theme it shows "No
+  Checkout module installed". Hyvä's separate Luma theme fallback for the checkout route may work but is untested.
+  For Hyvä Checkout itself use the Hyvä companion module.
 
 ## Installation
 
@@ -62,11 +65,12 @@ re-selects the address that was selected before.
 Switching back to a delivery rate puts the typed address back. The values are kept client-side:
 
 - The typed address is stored in the extra key `ppTypedShippingAddress` of Magento's `checkout-data` section
-  (customer-data, `mage-cache-storage`), together with the location address that was written into the form.
+  (customer-data, `mage-cache-storage`), per store view like Luma's own address data, together with the location
+  address that was written into the form.
 - The key is cleared on restore, on order placement and on login and logout, as Magento clears the section.
 - Once on page load the module checks whether the form still holds the written location address. If so, the typed
-  values go back in. This also works when the location was deactivated in the meantime. Without stored values, a
-  guest's form is cleared of an active location's address.
+  values go back in. This also works when the location was deactivated in the meantime. Without stored values, the
+  inline form (guests and logged-in customers without saved addresses) is cleared of an active location's address.
 
 The server does not depend on this: the core plugin rewrites the posted address to the location anyway. The address
 book is never written; the location address is posted with `save_in_address_book` set to 0.

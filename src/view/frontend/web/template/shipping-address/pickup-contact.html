@@ -1,0 +1,35 @@
+<!--
+/**
+ * Contact for a pickup order of a customer with saved addresses; the address itself is the pickup location.
+ */
+-->
+<div class="pp-pickup-contact" data-bind="visible: isVisible">
+    <form class="form form-shipping-address" data-role="pp-pickup-contact" novalidate="novalidate">
+        <fieldset class="fieldset address">
+            <div class="field _required">
+                <label class="label" for="pp-pickup-firstname"><span data-bind="i18n: 'First Name'"></span></label>
+                <div class="control">
+                    <input class="input-text" type="text" id="pp-pickup-firstname" name="pp_pickup_firstname"
+                           autocomplete="given-name" data-validate="{required:true}"
+                           data-bind="value: contact.firstname"/>
+                </div>
+            </div>
+            <div class="field _required">
+                <label class="label" for="pp-pickup-lastname"><span data-bind="i18n: 'Last Name'"></span></label>
+                <div class="control">
+                    <input class="input-text" type="text" id="pp-pickup-lastname" name="pp_pickup_lastname"
+                           autocomplete="family-name" data-validate="{required:true}"
+                           data-bind="value: contact.lastname"/>
+                </div>
+            </div>
+            <div class="field _required">
+                <label class="label" for="pp-pickup-telephone"><span data-bind="i18n: 'Phone Number'"></span></label>
+                <div class="control">
+                    <input class="input-text" type="tel" id="pp-pickup-telephone" name="pp_pickup_telephone"
+                           autocomplete="tel" data-validate="{required:true}"
+                           data-bind="value: contact.telephone"/>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+</div>

@@ -4,8 +4,9 @@
  * - Inline form (guests, customers without saved addresses): the address fields are snapshotted, overwritten with
  *   the location (company = location name) and hidden. First name, last name and phone stay visible and required,
  *   because Luma collects billing only on the payment step. Luma's checkout data then holds the location (its
- *   "Next" merges that data back into the form), so the typed values are kept under their own storage key and
- *   come back after a reload, even when the pickup rate is gone by then.
+ *   "Next" merges that data back into the form), so the typed values are kept in an extra key of that same
+ *   `checkout-data` section. Magento's own lifecycle clears it with the rest of the section (order placement,
+ *   login/logout); switching back to delivery clears it at once. After a reload the values come back.
  * - Saved addresses: the selected address is remembered, the list and the "New Address" button are hidden, and a
  *   small contact form (first name, last name, phone) feeds a new address built from the location.
  *
@@ -26,7 +27,7 @@ define([
     'Magento_Checkout/js/checkout-data',
     'PixelPerfect_StorePickupLuma/js/model/pickup',
     'Magento_Ui/js/lib/view/utils/async',
-    'jquery/jquery-storageapi',
+    'Magento_Customer/js/customer-data',
     'mage/validation'
 ], function (
     $,
@@ -40,7 +41,9 @@ define([
     checkoutDataResolver,
     selectShippingAddress,
     checkoutData,
-    pickup
+    pickup,
+    asyncView,
+    customerData
 ) {
     'use strict';
 
@@ -52,8 +55,34 @@ define([
         CONTACT_FORM = 'form[data-role=pp-pickup-contact]',
         // the frontend group template ignores the group's `visible`, so its legend is toggled on the node
         STREET_FIELDSET = '#shipping-new-address-form fieldset.street',
-        STORAGE_KEY = 'typed-shipping-address',
-        storage = $.initNamespaceStorage('pp-store-pickup').localStorage;
+        SECTION = 'checkout-data',
+        STORAGE_KEY = 'ppTypedShippingAddress',
+        storage = {
+            /**
+             * @return {Object|null}
+             */
+            get: function () {
+                var data = customerData.get(SECTION)();
+
+                return data && $.isPlainObject(data[STORAGE_KEY]) ? data[STORAGE_KEY] : null;
+            },
+
+            /**
+             * @param {Object|null} values - null removes the key
+             */
+            set: function (values) {
+                var data = $.extend({}, customerData.get(SECTION)());
+
+                if (values) {
+                    data[STORAGE_KEY] = values;
+                } else if (data.hasOwnProperty(STORAGE_KEY)) {
+                    delete data[STORAGE_KEY];
+                } else {
+                    return;
+                }
+                customerData.set(SECTION, data);
+            }
+        };
 
     /**
      * @param {*} value
@@ -232,7 +261,7 @@ define([
 
                     if (!self.ppSnapshot) {
                         self.ppSnapshot = self.ppTakeSnapshot(provider);
-                        storage.set(STORAGE_KEY, self.ppSnapshot.values);
+                        storage.set(self.ppSnapshot.values);
                     }
                     self.ppWriteFields(provider, {
                         'country_id': text(location.countryId),
@@ -257,7 +286,7 @@ define([
                     snapshot = this.ppSnapshot;
 
                 this.ppSnapshot = null;
-                storage.remove(STORAGE_KEY);
+                storage.set(null);
 
                 if (!snapshot) {
                     return;
@@ -348,11 +377,11 @@ define([
              * @return {Object|null}
              */
             ppStoredTypedAddress: function (provider) {
-                var stored = storage.get(STORAGE_KEY),
+                var stored = storage.get(),
                     data = provider.get(SCOPE) || {},
                     street = data.street || {};
 
-                if (!$.isPlainObject(stored)) {
+                if (!stored) {
                     return null;
                 }
 
@@ -373,7 +402,7 @@ define([
                 this.ppWithForm(function (provider) {
                     var stored = self.ppStoredTypedAddress(provider);
 
-                    storage.remove(STORAGE_KEY);
+                    storage.set(null);
 
                     if (stored && !self.ppApplied) {
                         self.ppWriteFields(provider, stored);

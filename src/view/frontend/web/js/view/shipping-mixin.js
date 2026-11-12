@@ -57,28 +57,38 @@ define([
         STREET_FIELDSET = '#shipping-new-address-form fieldset.street',
         SECTION = 'checkout-data',
         STORAGE_KEY = 'ppTypedShippingAddress',
+        // keyed by store view, like Luma's own address data: store views may share one base URL
+        STORE_CODE = (window.checkoutConfig && window.checkoutConfig.storeCode) || 'default',
         storage = {
             /**
              * @return {Object|null}
              */
             get: function () {
-                var data = customerData.get(SECTION)();
+                var data = customerData.get(SECTION)(),
+                    byStore = data && data[STORAGE_KEY];
 
-                return data && $.isPlainObject(data[STORAGE_KEY]) ? data[STORAGE_KEY] : null;
+                return $.isPlainObject(byStore) && $.isPlainObject(byStore[STORE_CODE]) ? byStore[STORE_CODE] : null;
             },
 
             /**
-             * @param {Object|null} values - null removes the key
+             * @param {Object|null} value - null removes this store view's entry (and the key once it is empty)
              */
-            set: function (values) {
-                var data = $.extend({}, customerData.get(SECTION)());
+            set: function (value) {
+                var data = $.extend({}, customerData.get(SECTION)()),
+                    byStore = $.extend({}, $.isPlainObject(data[STORAGE_KEY]) ? data[STORAGE_KEY] : {});
 
-                if (values) {
-                    data[STORAGE_KEY] = values;
-                } else if (data.hasOwnProperty(STORAGE_KEY)) {
-                    delete data[STORAGE_KEY];
+                if (value) {
+                    byStore[STORE_CODE] = value;
+                } else if (byStore.hasOwnProperty(STORE_CODE)) {
+                    delete byStore[STORE_CODE];
                 } else {
                     return;
+                }
+
+                if ($.isEmptyObject(byStore)) {
+                    delete data[STORAGE_KEY];
+                } else {
+                    data[STORAGE_KEY] = byStore;
                 }
                 customerData.set(SECTION, data);
             }

@@ -162,6 +162,9 @@ define([
                     }]);
                 }
 
+                if (this.isFormInline) {
+                    this.ppRecoverTypedAddress();
+                }
                 quote.shippingMethod.subscribe(this.ppOnShippingMethod, this);
                 this.ppOnShippingMethod(quote.shippingMethod());
 
@@ -215,8 +218,6 @@ define([
                     this.ppApply(location);
                 } else if (this.ppApplied) {
                     this.ppRestore();
-                } else if (this.isFormInline) {
-                    this.ppRecoverTypedAddress();
                 }
             },
 
@@ -252,10 +253,13 @@ define([
             },
 
             /**
-             * @param {Function} callback - receives the checkout provider once the form fields exist
+             * @param {Function} callback - receives the checkout provider once the form fields (and street lines) exist
              */
             ppWithForm: function (callback) {
-                registry.get([PROVIDER, FIELDSET + '.country_id', FIELDSET + '.street'], callback);
+                registry.get(
+                    [PROVIDER, FIELDSET + '.country_id', FIELDSET + '.street', FIELDSET + '.street.0'],
+                    callback
+                );
             },
 
             /**
@@ -271,7 +275,6 @@ define([
 
                     if (!self.ppSnapshot) {
                         self.ppSnapshot = self.ppTakeSnapshot(provider);
-                        storage.set(self.ppSnapshot.values);
                     }
                     self.ppWriteFields(provider, {
                         'country_id': text(location.countryId),
@@ -284,6 +287,15 @@ define([
                     });
                     ADDRESS_FIELDS.forEach(function (field) {
                         self.ppSetVisible(field, {self: false, children: []});
+                    });
+                    // the written location is stored too: after a reload it may be inactive and missing from config
+                    storage.set({
+                        values: self.ppSnapshot.values,
+                        location: {
+                            street: (location.street || [])[0],
+                            postcode: location.postcode,
+                            city: location.city
+                        }
                     });
                 });
             },
@@ -391,31 +403,50 @@ define([
                     data = provider.get(SCOPE) || {},
                     street = data.street || {};
 
-                if (!stored) {
+                if (!stored || !$.isPlainObject(stored.values) || !$.isPlainObject(stored.location)) {
                     return null;
                 }
 
-                return pickup.findLocationByAddress(street[0], data.postcode, data.city) ? stored : null;
+                return pickup.isSameAddress(stored.location, street[0], data.postcode, data.city)
+                    ? stored.values
+                    : null;
             },
 
             /**
-             * A delivery rate is selected without pickup applied in this page view (for example the pickup rate is
-             * gone after a reload): put the stored typed values back once, if the form still holds a location.
+             * On page load: Luma refills the form from its checkout data, which holds the location while pickup was
+             * applied. If the form still holds the location written before the reload, the stored typed values go
+             * back in (also when that location is inactive by now); without them a guest's form is cleared of an
+             * active location's address. A pickup rate selected afterwards hides and overwrites the fields again.
              */
             ppRecoverTypedAddress: function () {
                 var self = this;
 
-                if (this.ppRecoveryDone) {
-                    return;
-                }
-                this.ppRecoveryDone = true;
                 this.ppWithForm(function (provider) {
-                    var stored = self.ppStoredTypedAddress(provider);
+                    var stored = self.ppStoredTypedAddress(provider),
+                        data = provider.get(SCOPE) || {},
+                        location = stored ? null : pickup.findLocationByAddress(
+                            (data.street || {})[0],
+                            data.postcode,
+                            data.city
+                        );
 
+                    if (self.ppApplied) {
+                        return;
+                    }
                     storage.set(null);
 
-                    if (stored && !self.ppApplied) {
+                    if (stored) {
                         self.ppWriteFields(provider, stored);
+                    } else if (location && pickup.isSameValue(data.company, location.name)) {
+                        self.ppWriteFields(provider, {
+                            'country_id': data['country_id'],
+                            'region_id': '',
+                            region: '',
+                            street: [],
+                            postcode: '',
+                            city: '',
+                            company: ''
+                        });
                     }
                 });
             },

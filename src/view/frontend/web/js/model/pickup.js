@@ -80,15 +80,31 @@ define([
             for (i = 0; i < codes.length; i++) {
                 location = getLocation(codes[i]);
 
-                if (location && same((location.street || [])[0], street) &&
-                    same(location.postcode, postcode) && same(location.city, city)
-                ) {
+                if (location && this.isSameAddress(
+                    {street: (location.street || [])[0], postcode: location.postcode, city: location.city},
+                    street,
+                    postcode,
+                    city
+                )) {
                     return location;
                 }
             }
 
             return null;
         },
+
+        /**
+         * @param {Object} address - {street: first line, postcode, city}
+         * @param {*} street
+         * @param {*} postcode
+         * @param {*} city
+         * @return {Boolean}
+         */
+        isSameAddress: function (address, street, postcode, city) {
+            return same(address.street, street) && same(address.postcode, postcode) && same(address.city, city);
+        },
+
+        isSameValue: same,
 
         /**
          * Marks a quote address as a pickup address: Luma must never copy it to billing, so the resolver and the

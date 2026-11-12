@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<ruleset name="PixelPerfect StorePickupLuma">
+    <description>Uses the shared PixelPerfect standard (pixelperfectat/coding-standard).</description>
+    <config name="ignore_warnings_on_exit" value="1"/>
+    <config name="testVersion" value="8.3-"/>
+
+    <file>.</file>
+    <exclude-pattern>*/Test/*</exclude-pattern>
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/docs/*</exclude-pattern>
+    <exclude-pattern>*/.superpowers/*</exclude-pattern>
+    <exclude-pattern>*/view/*</exclude-pattern>
+    <exclude-pattern>*.sync-conflict-*</exclude-pattern>
+
+    <rule ref="PixelPerfect"/>
+
+    <!-- A fully qualified class name in a di.xml attribute cannot be wrapped. -->
+    <rule ref="Generic.Files.LineLength">
+        <exclude-pattern>*\.xml</exclude-pattern>
+    </rule>
+</ruleset>

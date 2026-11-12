@@ -1,19 +1,76 @@
 {
     "name": "pixelperfectat/magento2-module-store-pickup-luma",
     "description": "Store pickup for the Luma checkout: the pickup location in place of the shipping address form",
-    "type": "magento2-module",
     "license": "MIT",
+    "type": "magento2-module",
+    "prefer-stable": true,
     "require": {
-        "php": "^8.3"
+        "magento/framework": "^103.0",
+        "magento/module-checkout": "^100.4",
+        "magento/module-directory": "^100.4",
+        "magento/module-quote": "^101.2",
+        "magento/module-store": "^101.1",
+        "php": "^8.3",
+        "pixelperfectat/magento2-module-store-pickup": "^0.1@dev"
     },
+    "require-dev": {
+        "infection/infection": "^0.35",
+        "phpunit/phpunit": "^9.6",
+        "pixelperfectat/coding-standard": "^0.2.2"
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://repo.magento.com/"
+        }
+    ],
     "autoload": {
+        "files": [
+            "src/registration.php"
+        ],
         "psr-4": {
             "PixelPerfect\\StorePickupLuma\\": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PixelPerfect\\StorePickupLuma\\Test\\": "Test/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "cweagans/composer-patches": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "ergebnis/composer-normalize": true,
+            "infection/extension-installer": true,
+            "laminas/laminas-dependency-plugin": true,
+            "mage-os/*": true,
+            "magento/*": true,
+            "php-http/discovery": true,
+            "phpstan/extension-installer": true
+        },
+        "sort-packages": true
     },
     "extra": {
         "branch-alias": {
             "dev-main": "0.1.x-dev"
         }
+    },
+    "scripts": {
+        "check": [
+            "@ci:validate",
+            "@lint",
+            "@cs",
+            "@stan",
+            "@test",
+            "@infection"
+        ],
+        "ci:validate": "@composer validate --no-check-publish",
+        "cs": "phpcs",
+        "cs:fix": "phpcbf",
+        "infection": "infection --with-uncovered --min-msi=85 --min-covered-msi=90 --threads=max",
+        "lint": "parallel-lint --exclude vendor --exclude generated --exclude .superpowers .",
+        "stan": "phpstan analyse",
+        "test": "phpunit"
     }
 }

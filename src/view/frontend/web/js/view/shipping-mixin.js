@@ -107,6 +107,16 @@ define([
     return function (Component) {
         return Component.extend({
             /**
+             * The pickup location of a shipping rate, for the rate list's item template.
+             *
+             * @param {Object} rate
+             * @return {Object|null}
+             */
+            ppRateLocation: function (rate) {
+                return pickup.isPickup(rate) ? pickup.getLocation(rate['method_code']) : null;
+            },
+
+            /**
              * @inheritdoc
              */
             initialize: function () {

@@ -38,11 +38,11 @@
         <!-- ko if: openingHours -->
         <div class="pp-pickup-hours">
             <strong data-bind="i18n: 'Opening hours'"></strong>:
-            <span style="white-space: pre-line" data-bind="text: openingHours"></span>
+            <span class="pp-pickup-multiline" data-bind="text: openingHours"></span>
         </div>
         <!-- /ko -->
         <!-- ko if: note -->
-        <div class="pp-pickup-note" style="white-space: pre-line" data-bind="text: note"></div>
+        <div class="pp-pickup-note pp-pickup-multiline" data-bind="text: note"></div>
         <!-- /ko -->
     </td>
 </tr>

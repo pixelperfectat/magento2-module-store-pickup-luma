@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="PixelPerfect\StorePickupLuma\Service\Checkout\PickupConfigProvider">
+        <arguments>
+            <argument name="logger" xsi:type="object">PixelPerfect\StorePickup\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Magento\Checkout\Model\CompositeConfigProvider">
+        <arguments>
+            <argument name="configProviders" xsi:type="array">
+                <item name="pp_store_pickup" xsi:type="object">PixelPerfect\StorePickupLuma\Service\Checkout\PickupConfigProvider</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

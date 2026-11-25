@@ -3,7 +3,7 @@
 Luma checkout companion for
 [`pixelperfectat/magento2-module-store-pickup`](https://github.com/pixelperfectat/magento2-module-store-pickup).
 It shows the chosen pickup location in place of the shipping address form, the location details under each pickup
-rate, and keeps the billing address separate. The module is not released yet.
+rate, and keeps the billing address separate.
 
 ![Pickup rate selected in the Luma shipping step](docs/screenshots/luma-checkout-pickup-shipping-step.jpg)
 
